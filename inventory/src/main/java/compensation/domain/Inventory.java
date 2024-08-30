@@ -21,18 +21,6 @@ public class Inventory {
 
     private Long stock;
 
-    @PostPersist
-    public void onPostPersist() {}
-
-    @PostUpdate
-    public void onPostUpdate() {
-        StockDecreased stockDecreased = new StockDecreased(this);
-        stockDecreased.publishAfterCommit();
-
-        OutOfStock outOfStock = new OutOfStock(this);
-        outOfStock.publishAfterCommit();
-    }
-
     public static InventoryRepository repository() {
         InventoryRepository inventoryRepository = InventoryApplication.applicationContext.getBean(
             InventoryRepository.class
@@ -44,30 +32,24 @@ public class Inventory {
     public static void decreaseStock(OrderPlaced orderPlaced) {
         //implement business logic here:
 
-        /** Example 1:  new item 
-        Inventory inventory = new Inventory();
-        repository().save(inventory);
 
-        StockDecreased stockDecreased = new StockDecreased(inventory);
-        stockDecreased.publishAfterCommit();
-        OutOfStock outOfStock = new OutOfStock(inventory);
-        outOfStock.publishAfterCommit();
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(orderPlaced.get???()).ifPresent(inventory->{
+        repository().findById(
+            Long.valueOf(orderPlaced.getProductId())
+            ).ifPresent(inventory->{
             
-            inventory // do something
-            repository().save(inventory);
+            if (inventory.getStock() >= orderPlaced.getQty()) {
+                inventory.setStock(inventory.getStock()- orderPlaced.getQty());
+                repository().save(inventory);
 
-            StockDecreased stockDecreased = new StockDecreased(inventory);
-            stockDecreased.publishAfterCommit();
-            OutOfStock outOfStock = new OutOfStock(inventory);
-            outOfStock.publishAfterCommit();
-
+                StockDecreased stockDecreased = new StockDecreased(inventory);
+                stockDecreased.publishAfterCommit();
+            } else {
+                OutOfStock outOfStock = new OutOfStock(inventory);
+                outOfStock.setOrderId(orderPlaced.getId());
+                outOfStock.publishAfterCommit();
+            }
          });
-        */
+
 
     }
 

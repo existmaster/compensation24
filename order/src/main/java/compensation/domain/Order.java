@@ -35,13 +35,13 @@ public class Order {
     public void onPostPersist() {
         OrderPlaced orderPlaced = new OrderPlaced(this);
         orderPlaced.publishAfterCommit();
-
-        OrderCancelled orderCancelled = new OrderCancelled(this);
-        orderCancelled.publishAfterCommit();
     }
 
     @PreRemove
-    public void onPreRemove() {}
+    public void onPreRemove() {
+        OrderCancelled orderCancelled = new OrderCancelled(this);
+        orderCancelled.publishAfterCommit();
+    }
 
     public static OrderRepository repository() {
         OrderRepository orderRepository = OrderApplication.applicationContext.getBean(
@@ -54,22 +54,14 @@ public class Order {
     public static void updateStatus(OutOfStock outOfStock) {
         //implement business logic here:
 
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(outOfStock.get???()).ifPresent(order->{
+        repository().findById(outOfStock.getOrderId()).ifPresent(order->{
             
-            order // do something
+            order.setStatus("OrderCancelled");
             repository().save(order);
 
 
          });
-        */
+
 
     }
     //>>> Clean Arch / Port Method
